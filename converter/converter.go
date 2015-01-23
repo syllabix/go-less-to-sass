@@ -3,7 +3,7 @@ package converter
 import (
 	"bufio"
 	"bytes"
-	"fmt"
+	//	"fmt"
 	"github.com/syllabix/go-less-to-sass/regexes"
 	"os"
 	"regexp"
@@ -90,10 +90,8 @@ func handleLessNamespaces(line string) string {
 			fmtName := regexes.HashAndDot.ReplaceAllString(nsMixIns[i], "")
 			fmtName = regexes.GreaterThan.ReplaceAllString(fmtName, "-")
 			fmtName = regexes.Space.ReplaceAllString(fmtName, "")
-			fmt.Println(fmtName)
 			line = line[:fIdx] + "@include " + fmtName + line[lIdx:]
 		}
-		fmt.Println(line)
 	}
 	return line
 }
