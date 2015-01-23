@@ -1,8 +1,10 @@
 package converter
 
 import (
-	"fmt"
-	"io/ioutil"
+	"bufio"
+	"bytes"
+	//	"fmt"
+	"os"
 	"regexp"
 )
 
@@ -12,33 +14,43 @@ type DataStream struct {
 }
 
 var convertedFile string
+var stringBuffer bytes.Buffer
 
-func LessToSass(filename string, ch chan DataStream) {
+func LessToSass(filename string) chan DataStream {
+	ch := make(chan DataStream)
 	go func() {
-		contents, err := ioutil.ReadFile(filename)
-		convertedFile := convertMixins(string(contents))
-		//convertedFile = convertVars(string(convertedFile))
+		file, err := os.Open(filename)
+		defer file.Close()
+		if err == nil {
+			convertedFile = convert(file)
+		} else {
+			convertedFile = ""
+		}
 		ch <- DataStream{convertedFile, err}
 	}()
+	return ch
 }
 
-func convertVars(file string) string {
-	re := regexp.MustCompile("@+")
-	mediaRE := regexp.MustCompile("\\$media+")
-	importRE := regexp.MustCompile("\\$import+")
-	result := re.ReplaceAllString(file, "$")
-	result = mediaRE.ReplaceAllString(result, "@media")
-	result = importRE.ReplaceAllString(result, "@import")
-	return result
-}
-
-func convertMixins(file string) string {
-	re := regexp.MustCompile("\\.([a-zA-Z-_0-9])+\\(([a-zA-Z-_0-9])*\\)(\\s)*{")
-	result := re.FindAllString(file, -1)
-	for _, match := range result {
-		regex := regexp.MustCompile(match)
-		fmt.Println("@mixin " + match)
-		file = regex.ReplaceAllString(file, "@mixin"+match)
+func convert(file *os.File) string {
+	reader := bufio.NewReader(file)
+	scanner := bufio.NewScanner(reader)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		stringBuffer.WriteString(swapSyntax(scanner.Text()) + "\n")
 	}
-	return file
+	return stringBuffer.String()
+}
+
+func swapSyntax(line string) string {
+	variables := regexp.MustCompile("@")
+	cssReserved := regexp.MustCompile("\\$(media|import|keyframes|-webkit|-moz|-o)")
+	line = variables.ReplaceAllString(line, "$")
+	reserves := cssReserved.FindAllStringSubmatchIndex(line, -1)
+	if len(reserves) > 0 {
+		for i, _ := range reserves {
+			ampersandIdx := reserves[i][0]
+			line = line[:ampersandIdx] + "@" + line[ampersandIdx+1:]
+		}
+	}
+	return line
 }

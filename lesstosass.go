@@ -11,11 +11,10 @@ import (
 var sassFile converter.DataStream
 
 func main() {
-	ch := make(chan converter.DataStream)
 	filename := flag.String("filename", "", "relative path to the less file you would like to convert to sass")
 	flag.Parse()
 	if *filename != "" {
-		converter.LessToSass(*filename, ch)
+		ch := converter.LessToSass(*filename)
 		sassFile := <-ch
 		if sassFile.Err != nil {
 			fmt.Println(sassFile.Err)
