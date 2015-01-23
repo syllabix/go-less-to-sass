@@ -6,6 +6,7 @@ import (
 	//	"fmt"
 	"os"
 	"regexp"
+	"strings"
 )
 
 type DataStream struct {
@@ -50,6 +51,16 @@ func swapSyntax(line string) string {
 		for i, _ := range reserves {
 			ampersandIdx := reserves[i][0]
 			line = line[:ampersandIdx] + "@" + line[ampersandIdx+1:]
+		}
+	}
+	mixInDeclation := regexp.MustCompile(".(.)+\\((.)*\\)\\s{")
+	mixIns := mixInDeclation.FindAllStringSubmatchIndex(line, -1)
+	emptyParens := regexp.MustCompile("\\(\\)")
+	if len(mixIns) > 0 {
+		for i, _ := range mixIns {
+			idx := mixIns[i][0]
+			line = line[:idx] + "@mixin " + strings.Trim(line[idx+1:], " ")
+			line = emptyParens.ReplaceAllString(line, "")
 		}
 	}
 	return line
