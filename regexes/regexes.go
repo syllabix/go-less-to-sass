@@ -8,6 +8,10 @@ import (
 var LessNameSpace = regexp.MustCompile("#(\\w|\\d|-|_)+\\s{")
 var OpenCurly = regexp.MustCompile("{")
 var ClosedCurly = regexp.MustCompile("}")
+var NamespacedMixins = regexp.MustCompile("(#(.)*\\s>\\s)\\.(\\w|\\d|-|_)*")
+var HashAndDot = regexp.MustCompile("(#|\\.)")
+var GreaterThan = regexp.MustCompile(">")
+var Space = regexp.MustCompile("\\s")
 
 var CssReservedWords = regexp.MustCompile("\\$(media|import|keyframes|-webkit|-moz|-o)")
 var MixInDeclation = regexp.MustCompile(".(.)+\\((.)*\\)\\s{")

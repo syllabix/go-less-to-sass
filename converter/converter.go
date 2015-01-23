@@ -3,7 +3,7 @@ package converter
 import (
 	"bufio"
 	"bytes"
-	//	"fmt"
+	"fmt"
 	"github.com/syllabix/go-less-to-sass/regexes"
 	"os"
 	"regexp"
@@ -47,7 +47,7 @@ func convert(file *os.File) string {
 
 func swapSyntax(line string) string {
 	line = swapVars(line)
-	handleLessNamespaces(line)
+	line = handleLessNamespaces(line)
 	line = swapMixins(line)
 	return line
 }
@@ -65,7 +65,7 @@ func swapVars(line string) string {
 	return line
 }
 
-func handleLessNamespaces(line string) {
+func handleLessNamespaces(line string) string {
 	nameSpaces := regexes.LessNameSpace.FindAllString(line, -1)
 	if nameSpaces != nil {
 		foundNameSpaces = append(foundNameSpaces, strings.Join(nameSpaces, ", "))
@@ -81,6 +81,21 @@ func handleLessNamespaces(line string) {
 	if nsCurlyCount == 0 {
 		foundNameSpaces = append(make([]string, 0))
 	}
+	nsMixInIdx := regexes.NamespacedMixins.FindAllStringSubmatchIndex(line, -1)
+	nsMixIns := regexes.NamespacedMixins.FindAllString(line, -1)
+	if len(nsMixIns) > 0 {
+		for i, _ := range nsMixIns {
+			fIdx := nsMixInIdx[i][0]
+			lIdx := nsMixInIdx[i][len(nsMixInIdx[i])-1]
+			fmtName := regexes.HashAndDot.ReplaceAllString(nsMixIns[i], "")
+			fmtName = regexes.GreaterThan.ReplaceAllString(fmtName, "-")
+			fmtName = regexes.Space.ReplaceAllString(fmtName, "")
+			fmt.Println(fmtName)
+			line = line[:fIdx] + "@include " + fmtName + line[lIdx:]
+		}
+		fmt.Println(line)
+	}
+	return line
 }
 
 func swapMixins(line string) string {
