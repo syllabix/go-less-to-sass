@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	//	"fmt"
+	"github.com/syllabix/go-less-to-sass/regexes"
 	"os"
 	"regexp"
 	"strings"
@@ -46,33 +47,15 @@ func convert(file *os.File) string {
 
 func swapSyntax(line string) string {
 	line = swapVars(line)
-	lessNameSpace := regexp.MustCompile("#(\\w|\\d|-|_)+\\s{")
-	openCurly := regexp.MustCompile("{")
-	closedCurly := regexp.MustCompile("}")
-	nameSpaces := lessNameSpace.FindAllString(line, -1)
-	if nameSpaces != nil {
-		foundNameSpaces = append(foundNameSpaces, strings.Join(nameSpaces, ", "))
-	}
-	if len(foundNameSpaces) > 0 {
-		if openCurly.MatchString(line) {
-			nsCurlyCount++
-		}
-		if closedCurly.MatchString(line) {
-			nsCurlyCount--
-		}
-	}
-	if nsCurlyCount == 0 {
-		foundNameSpaces = append(make([]string, 0))
-	}
+	handleLessNamespaces(line)
 	line = swapMixins(line)
 	return line
 }
 
 func swapVars(line string) string {
 	variables := regexp.MustCompile("@")
-	cssReserved := regexp.MustCompile("\\$(media|import|keyframes|-webkit|-moz|-o)")
 	line = variables.ReplaceAllString(line, "$")
-	reserves := cssReserved.FindAllStringSubmatchIndex(line, -1)
+	reserves := regexes.CssReservedWords.FindAllStringSubmatchIndex(line, -1)
 	if len(reserves) > 0 {
 		for i, _ := range reserves {
 			ampersandIdx := reserves[i][0]
@@ -82,21 +65,33 @@ func swapVars(line string) string {
 	return line
 }
 
+func handleLessNamespaces(line string) {
+	nameSpaces := regexes.LessNameSpace.FindAllString(line, -1)
+	if nameSpaces != nil {
+		foundNameSpaces = append(foundNameSpaces, strings.Join(nameSpaces, ", "))
+	}
+	if len(foundNameSpaces) > 0 {
+		if regexes.OpenCurly.MatchString(line) {
+			nsCurlyCount++
+		}
+		if regexes.ClosedCurly.MatchString(line) {
+			nsCurlyCount--
+		}
+	}
+	if nsCurlyCount == 0 {
+		foundNameSpaces = append(make([]string, 0))
+	}
+}
+
 func swapMixins(line string) string {
-	mixInDeclation := regexp.MustCompile(".(.)+\\((.)*\\)\\s{")
-	if !mixInDeclation.MatchString(line) {
+	if !regexes.MixInDeclation.MatchString(line) {
 		return line
 	}
-	mixIns := mixInDeclation.FindAllStringSubmatchIndex(line, -1)
-	emptyParens := regexp.MustCompile("\\(\\)")
-	offByOneMixinConcat := regexp.MustCompile("-\\.")
+	mixIns := regexes.MixInDeclation.FindAllStringSubmatchIndex(line, -1)
 	var mixin string
 	if len(foundNameSpaces) > 0 && nsCurlyCount > 0 {
 		mixin = strings.Join(foundNameSpaces, "-")
-		hashtag := regexp.MustCompile("(#|{|\\s)")
-		//period := regexp.MustCompile("\\.")
-		mixin = hashtag.ReplaceAllString(mixin, "")
-		//mixin = period.ReplaceAllString(mixin, "-")
+		mixin = regexes.Hashtag.ReplaceAllString(mixin, "")
 		mixin = "@mixin " + mixin + "-"
 	} else {
 		mixin = "@mixin "
@@ -105,8 +100,8 @@ func swapMixins(line string) string {
 		for i, _ := range mixIns {
 			idx := mixIns[i][0]
 			line = line[:idx] + mixin + strings.Trim(line[idx+1:], " ")
-			line = emptyParens.ReplaceAllString(line, "")
-			line = offByOneMixinConcat.ReplaceAllString(line, "-")
+			line = regexes.EmptyParens.ReplaceAllString(line, "")
+			line = regexes.OffByOneMixinConcat.ReplaceAllString(line, "-")
 		}
 	}
 	return line
