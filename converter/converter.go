@@ -15,10 +15,16 @@ type DataStream struct {
 	Err  error
 }
 
+type lessNameSpace struct {
+	name       string
+	curlyCount int
+}
+
 var convertedFile string
 var stringBuffer bytes.Buffer
-var foundNameSpaces []string
+var foundNameSpaces []lessNameSpace
 var nsCurlyCount int = 0
+var capturedNameSpaces []string
 
 func LessToSass(filename string) chan DataStream {
 	ch := make(chan DataStream)
@@ -42,6 +48,9 @@ func convert(file *os.File) string {
 	for scanner.Scan() {
 		stringBuffer.WriteString(swapSyntax(scanner.Text()) + "\n")
 	}
+	if len(capturedNameSpaces) > 0 {
+		return removeNameSpaces(stringBuffer.String())
+	}
 	return stringBuffer.String()
 }
 
@@ -54,7 +63,7 @@ func swapSyntax(line string) string {
 
 func swapVars(line string) string {
 	variables := regexp.MustCompile("@")
-	line = variables.ReplaceAllString(line, "$")
+	line = variables.ReplaceAllLiteralString(line, "$")
 	reserves := regexes.CssReservedWords.FindAllStringSubmatchIndex(line, -1)
 	if len(reserves) > 0 {
 		for i, _ := range reserves {
@@ -68,18 +77,32 @@ func swapVars(line string) string {
 func handleLessNamespaces(line string) string {
 	nameSpaces := regexes.LessNameSpace.FindAllString(line, -1)
 	if nameSpaces != nil {
-		foundNameSpaces = append(foundNameSpaces, strings.Join(nameSpaces, ", "))
+		for _, nameSpace := range nameSpaces {
+			ns := lessNameSpace{name: nameSpace, curlyCount: 0}
+			foundNameSpaces = append(foundNameSpaces, ns)
+		}
+		capturedNameSpaces = append(capturedNameSpaces, strings.Join(nameSpaces, ", "))
 	}
 	if len(foundNameSpaces) > 0 {
 		if regexes.OpenCurly.MatchString(line) {
-			nsCurlyCount++
+			for _, nsStruct := range foundNameSpaces {
+				nsStruct.curlyCount++
+			}
 		}
 		if regexes.ClosedCurly.MatchString(line) {
-			nsCurlyCount--
+			var idxToRemove []int
+			for i, nsStruct := range foundNameSpaces {
+				nsStruct.curlyCount--
+				if nsStruct.curlyCount == 0 {
+					line = regexes.ClosedCurly.ReplaceAllString(line, "")
+					idxToRemove = append(idxToRemove, int(i))
+				}
+			}
+			for _, idx := range idxToRemove {
+				foundNameSpaces[idx] = foundNameSpaces[len(foundNameSpaces)-1]
+				foundNameSpaces = foundNameSpaces[:len(foundNameSpaces)-2]
+			}
 		}
-	}
-	if nsCurlyCount == 0 {
-		foundNameSpaces = append(make([]string, 0))
 	}
 	nsMixInIdx := regexes.NamespacedMixins.FindAllStringSubmatchIndex(line, -1)
 	nsMixIns := regexes.NamespacedMixins.FindAllString(line, -1)
@@ -87,13 +110,20 @@ func handleLessNamespaces(line string) string {
 		for i, _ := range nsMixIns {
 			fIdx := nsMixInIdx[i][0]
 			lIdx := nsMixInIdx[i][len(nsMixInIdx[i])-1]
-			fmtName := regexes.HashAndDot.ReplaceAllString(nsMixIns[i], "")
-			fmtName = regexes.GreaterThan.ReplaceAllString(fmtName, "-")
-			fmtName = regexes.Space.ReplaceAllString(fmtName, "")
+			fmtName := regexes.HashAndDot.ReplaceAllLiteralString(nsMixIns[i], "")
+			fmtName = regexes.GreaterThan.ReplaceAllLiteralString(fmtName, "-")
+			fmtName = regexes.Space.ReplaceAllLiteralString(fmtName, "")
 			line = line[:fIdx] + "@include " + fmtName + line[lIdx:]
 		}
 	}
 	return line
+}
+
+func removeNameSpaces(filecontent string) string {
+	var nsExp = "(" + strings.Join(capturedNameSpaces, "|") + ")"
+	nsExp = regexes.Space.ReplaceAllLiteralString(nsExp, "\\s")
+	var nsRegExp = regexp.MustCompile(nsExp)
+	return nsRegExp.ReplaceAllLiteralString(filecontent, "")
 }
 
 func swapMixins(line string) string {
@@ -102,9 +132,13 @@ func swapMixins(line string) string {
 	}
 	mixIns := regexes.MixInDeclation.FindAllStringSubmatchIndex(line, -1)
 	var mixin string
-	if len(foundNameSpaces) > 0 && nsCurlyCount > 0 {
-		mixin = strings.Join(foundNameSpaces, "-")
-		mixin = regexes.Hashtag.ReplaceAllString(mixin, "")
+	if len(foundNameSpaces) > 0 {
+		var mixinNames []string
+		for _, ns := range foundNameSpaces {
+			mixinNames = append(mixinNames, ns.name)
+		}
+		mixin = strings.Join(mixinNames, "-")
+		mixin = regexes.Hashtag.ReplaceAllLiteralString(mixin, "")
 		mixin = "@mixin " + mixin + "-"
 	} else {
 		mixin = "@mixin "
@@ -113,8 +147,8 @@ func swapMixins(line string) string {
 		for i, _ := range mixIns {
 			idx := mixIns[i][0]
 			line = line[:idx] + mixin + strings.Trim(line[idx+1:], " ")
-			line = regexes.EmptyParens.ReplaceAllString(line, "")
-			line = regexes.OffByOneMixinConcat.ReplaceAllString(line, "-")
+			line = regexes.EmptyParens.ReplaceAllLiteralString(line, "")
+			line = regexes.OffByOneMixinConcat.ReplaceAllLiteralString(line, "-")
 		}
 	}
 	return line

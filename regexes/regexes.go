@@ -13,7 +13,7 @@ var HashAndDot = regexp.MustCompile("(#|\\.)")
 var GreaterThan = regexp.MustCompile(">")
 var Space = regexp.MustCompile("\\s")
 
-var CssReservedWords = regexp.MustCompile("\\$(media|import|keyframes|-webkit|-moz|-o)")
+var CssReservedWords = regexp.MustCompile("\\$(media|import|keyframes|-webkit|-moz|-o|font-face|page|supports|document|charset)")
 var MixInDeclation = regexp.MustCompile(".(.)+\\((.)*\\)\\s{")
 var EmptyParens = regexp.MustCompile("\\(\\)")
 var OffByOneMixinConcat = regexp.MustCompile("-\\.")
