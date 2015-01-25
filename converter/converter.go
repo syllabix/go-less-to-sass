@@ -3,7 +3,7 @@ package converter
 import (
 	"bufio"
 	"bytes"
-	//	"fmt"
+	"fmt"
 	"github.com/syllabix/go-less-to-sass/regexes"
 	"os"
 	"regexp"
@@ -85,22 +85,24 @@ func handleLessNamespaces(line string) string {
 	}
 	if len(foundNameSpaces) > 0 {
 		if regexes.OpenCurly.MatchString(line) {
-			for _, nsStruct := range foundNameSpaces {
-				nsStruct.curlyCount++
+			for i, _ := range foundNameSpaces {
+				foundNameSpaces[i].curlyCount++
 			}
 		}
 		if regexes.ClosedCurly.MatchString(line) {
 			var idxToRemove []int
-			for i, nsStruct := range foundNameSpaces {
-				nsStruct.curlyCount--
-				if nsStruct.curlyCount == 0 {
+			for i := 0; i < len(foundNameSpaces); i++ {
+				foundNameSpaces[i].curlyCount--
+				if foundNameSpaces[i].curlyCount == 0 {
 					line = regexes.ClosedCurly.ReplaceAllString(line, "")
 					idxToRemove = append(idxToRemove, int(i))
 				}
 			}
 			for _, idx := range idxToRemove {
 				foundNameSpaces[idx] = foundNameSpaces[len(foundNameSpaces)-1]
-				foundNameSpaces = foundNameSpaces[:len(foundNameSpaces)-2]
+
+				foundNameSpaces = foundNameSpaces[:len(foundNameSpaces)-1]
+				fmt.Println(foundNameSpaces)
 			}
 		}
 	}
