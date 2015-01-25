@@ -8,6 +8,7 @@ import (
 var LessNameSpace = regexp.MustCompile("#(\\w|\\d|-|_)+\\s{")
 var OpenCurly = regexp.MustCompile("{")
 var ClosedCurly = regexp.MustCompile("}")
+var OneClosedCurly = regexp.MustCompile("^(.*?)}")
 var NamespacedMixins = regexp.MustCompile("(#(.)*\\s>\\s)\\.(\\w|\\d|-|_)*")
 var HashAndDot = regexp.MustCompile("(#|\\.)")
 var GreaterThan = regexp.MustCompile(">")

@@ -23,7 +23,6 @@ type lessNameSpace struct {
 var convertedFile string
 var stringBuffer bytes.Buffer
 var foundNameSpaces []lessNameSpace
-var nsCurlyCount int = 0
 var capturedNameSpaces []string
 
 func LessToSass(filename string) chan DataStream {
@@ -94,7 +93,7 @@ func handleLessNamespaces(line string) string {
 			for i := 0; i < len(foundNameSpaces); i++ {
 				foundNameSpaces[i].curlyCount--
 				if foundNameSpaces[i].curlyCount == 0 {
-					line = regexes.ClosedCurly.ReplaceAllString(line, "")
+					line = regexes.OneClosedCurly.ReplaceAllLiteralString(line, "")
 					idxToRemove = append(idxToRemove, int(i))
 				}
 			}
