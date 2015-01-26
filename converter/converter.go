@@ -3,7 +3,7 @@ package converter
 import (
 	"bufio"
 	"bytes"
-	"fmt"
+	//"fmt"
 	"github.com/syllabix/go-less-to-sass/regexes"
 	"os"
 	"regexp"
@@ -18,6 +18,7 @@ type DataStream struct {
 type lessNameSpace struct {
 	name       string
 	curlyCount int
+	verified   int //0 = just found; 1 = pending; 2 = false; 3 = true
 }
 
 var convertedFile string
@@ -55,8 +56,8 @@ func convert(file *os.File) string {
 
 func swapSyntax(line string) string {
 	line = swapVars(line)
-	line = handleLessNamespaces(line)
 	line = swapMixins(line)
+	line = handleLessNamespaces(line)
 	return line
 }
 
@@ -77,7 +78,7 @@ func handleLessNamespaces(line string) string {
 	nameSpaces := regexes.LessNameSpace.FindAllString(line, -1)
 	if nameSpaces != nil {
 		for _, nameSpace := range nameSpaces {
-			ns := lessNameSpace{name: nameSpace, curlyCount: 0}
+			ns := lessNameSpace{name: nameSpace, curlyCount: 0, verified: 0}
 			foundNameSpaces = append(foundNameSpaces, ns)
 		}
 		capturedNameSpaces = append(capturedNameSpaces, strings.Join(nameSpaces, ", "))
@@ -99,9 +100,7 @@ func handleLessNamespaces(line string) string {
 			}
 			for _, idx := range idxToRemove {
 				foundNameSpaces[idx] = foundNameSpaces[len(foundNameSpaces)-1]
-
 				foundNameSpaces = foundNameSpaces[:len(foundNameSpaces)-1]
-				fmt.Println(foundNameSpaces)
 			}
 		}
 	}
@@ -117,7 +116,37 @@ func handleLessNamespaces(line string) string {
 			line = line[:fIdx] + "@include " + fmtName + line[lIdx:]
 		}
 	}
+	if len(foundNameSpaces) > 0 {
+		verifyNameSpaces(line)
+	}
 	return line
+}
+
+func verifyNameSpaces(line string) {
+	for i := 0; i < len(foundNameSpaces); i++ {
+		switch foundNameSpaces[i].verified {
+		case 3:
+			break
+		case 0:
+			foundNameSpaces[i].verified = 2
+		case 2:
+			if regexes.LessNameSpace.MatchString(line) {
+				foundNameSpaces[i].verified = 1
+			}
+			if regexes.ScssMixin.MatchString(line) {
+				foundNameSpaces[i].verified = 3
+				return
+			}
+			if foundNameSpaces[i].verified == 2 {
+				currentNameSpaces := strings.Join(capturedNameSpaces, ",")
+				nsToRemove := regexp.MustCompile(foundNameSpaces[i].name)
+				currentNameSpaces = nsToRemove.ReplaceAllLiteralString(currentNameSpaces, "")
+				capturedNameSpaces = strings.Split(currentNameSpaces, ",")
+				foundNameSpaces[i] = foundNameSpaces[len(foundNameSpaces)-1]
+				foundNameSpaces = foundNameSpaces[:len(foundNameSpaces)-1]
+			}
+		}
+	}
 }
 
 func removeNameSpaces(filecontent string) string {

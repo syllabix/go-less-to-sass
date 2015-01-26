@@ -19,3 +19,5 @@ var MixInDeclation = regexp.MustCompile(".(.)+\\((.)*\\)\\s{")
 var EmptyParens = regexp.MustCompile("\\(\\)")
 var OffByOneMixinConcat = regexp.MustCompile("-\\.")
 var Hashtag = regexp.MustCompile("(#|{|\\s)")
+
+var ScssMixin = regexp.MustCompile("@mixin")
