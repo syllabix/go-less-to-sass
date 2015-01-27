@@ -12,7 +12,7 @@ Input:
 ```
 Output:
 ```scss
-$myFavColos:
+$myFavColor: #333;
 ```
 
 
