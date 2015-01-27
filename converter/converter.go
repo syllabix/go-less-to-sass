@@ -3,7 +3,7 @@ package converter
 import (
 	"bufio"
 	"bytes"
-	//"fmt"
+	//	"fmt"
 	"github.com/syllabix/go-less-to-sass/regexes"
 	"os"
 	"regexp"
@@ -83,6 +83,33 @@ func handleLessNamespaces(line string) string {
 		}
 		capturedNameSpaces = append(capturedNameSpaces, strings.Join(nameSpaces, ", "))
 	}
+	line = trackNameSpaceClosures(line)
+	nsMixInIdx := regexes.NamespacedMixins.FindAllStringSubmatchIndex(line, -1)
+	nsMixIns := regexes.NamespacedMixins.FindAllString(line, -1)
+	if len(nsMixIns) > 0 {
+		for i, _ := range nsMixIns {
+			fIdx := nsMixInIdx[i][0]
+			lIdx := nsMixInIdx[i][len(nsMixInIdx[i])-1]
+			fmtName := regexes.HashAndDot.ReplaceAllLiteralString(nsMixIns[i], "")
+			fmtName = regexes.GreaterThan.ReplaceAllLiteralString(fmtName, "-")
+			fmtName = regexes.Space.ReplaceAllLiteralString(fmtName, "")
+			line = line[:fIdx] + "@include " + fmtName + line[lIdx:]
+		}
+	}
+	if len(foundNameSpaces) > 0 {
+		verifyNameSpaces(line)
+	}
+	if regexes.LessMixin.MatchString(line) {
+		mixIns := regexes.LessMixin.FindAllStringSubmatchIndex(line, -1)
+		for i, _ := range mixIns {
+			idx := mixIns[i][0]
+			line = line[:idx] + "@include " + line[idx+1:]
+		}
+	}
+	return line
+}
+
+func trackNameSpaceClosures(line string) string {
 	if len(foundNameSpaces) > 0 {
 		if regexes.OpenCurly.MatchString(line) {
 			for i, _ := range foundNameSpaces {
@@ -103,21 +130,6 @@ func handleLessNamespaces(line string) string {
 				foundNameSpaces = foundNameSpaces[:len(foundNameSpaces)-1]
 			}
 		}
-	}
-	nsMixInIdx := regexes.NamespacedMixins.FindAllStringSubmatchIndex(line, -1)
-	nsMixIns := regexes.NamespacedMixins.FindAllString(line, -1)
-	if len(nsMixIns) > 0 {
-		for i, _ := range nsMixIns {
-			fIdx := nsMixInIdx[i][0]
-			lIdx := nsMixInIdx[i][len(nsMixInIdx[i])-1]
-			fmtName := regexes.HashAndDot.ReplaceAllLiteralString(nsMixIns[i], "")
-			fmtName = regexes.GreaterThan.ReplaceAllLiteralString(fmtName, "-")
-			fmtName = regexes.Space.ReplaceAllLiteralString(fmtName, "")
-			line = line[:fIdx] + "@include " + fmtName + line[lIdx:]
-		}
-	}
-	if len(foundNameSpaces) > 0 {
-		verifyNameSpaces(line)
 	}
 	return line
 }

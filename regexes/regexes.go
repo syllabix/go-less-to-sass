@@ -21,3 +21,4 @@ var OffByOneMixinConcat = regexp.MustCompile("-\\.")
 var Hashtag = regexp.MustCompile("(#|{|\\s)")
 
 var ScssMixin = regexp.MustCompile("@mixin")
+var LessMixin = regexp.MustCompile("\\.\\D((.)*\\((.)*\\)|(.)*);")
