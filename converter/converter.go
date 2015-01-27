@@ -55,6 +55,7 @@ func convert(file *os.File) string {
 }
 
 func swapSyntax(line string) string {
+	line = convertStringMethods(line)
 	line = swapVars(line)
 	line = swapMixins(line)
 	line = handleLessNamespaces(line)
@@ -62,13 +63,12 @@ func swapSyntax(line string) string {
 }
 
 func swapVars(line string) string {
-	variables := regexp.MustCompile("@")
-	line = variables.ReplaceAllLiteralString(line, "$")
+	line = regexes.At.ReplaceAllLiteralString(line, "$")
 	reserves := regexes.CssReservedWords.FindAllStringSubmatchIndex(line, -1)
 	if len(reserves) > 0 {
 		for i, _ := range reserves {
-			ampersandIdx := reserves[i][0]
-			line = line[:ampersandIdx] + "@" + line[ampersandIdx+1:]
+			atIdx := reserves[i][0]
+			line = line[:atIdx] + "@" + line[atIdx+1:]
 		}
 	}
 	return line
@@ -194,4 +194,15 @@ func swapMixins(line string) string {
 		}
 	}
 	return line
+}
+
+func convertStringMethods(line string) string {
+	if !regexes.TildeStringEscape.MatchString(line) {
+		return line
+	} else {
+		line = regexes.Tilde.ReplaceAllLiteralString(line, "")
+		line = regexes.At.ReplaceAllLiteralString(line, "#")
+		line = regexes.RubyStringInterpolation.ReplaceAllLiteralString(line, "#{$")
+		return line
+	}
 }

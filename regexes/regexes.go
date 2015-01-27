@@ -5,6 +5,7 @@ import (
 )
 
 //keeping regular exp declarations out of the conversion logic
+var At = regexp.MustCompile("@")
 var LessNameSpace = regexp.MustCompile("#(\\w|\\d|-|_)+\\s{")
 var OpenCurly = regexp.MustCompile("{")
 var ClosedCurly = regexp.MustCompile("}")
@@ -22,3 +23,7 @@ var Hashtag = regexp.MustCompile("(#|{|\\s)")
 
 var ScssMixin = regexp.MustCompile("@mixin")
 var LessMixin = regexp.MustCompile("\\.\\D((.)*\\((.)*\\)|(.)*);")
+
+var Tilde = regexp.MustCompile("~")
+var TildeStringEscape = regexp.MustCompile("~\\\"(.)*\\\"")
+var RubyStringInterpolation = regexp.MustCompile("#{")
