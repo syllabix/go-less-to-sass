@@ -3,7 +3,7 @@ package converter
 import (
 	"bufio"
 	"bytes"
-	//	"fmt"
+	"fmt"
 	"github.com/syllabix/go-less-to-sass/regexes"
 	"os"
 	"regexp"
@@ -55,8 +55,9 @@ func convert(file *os.File) string {
 }
 
 func swapSyntax(line string) string {
-	line = convertStringMethods(line)
+	line = convertColorMethods(line)
 	line = swapVars(line)
+	line = convertStringMethods(line)
 	line = swapMixins(line)
 	line = handleLessNamespaces(line)
 	return line
@@ -197,12 +198,62 @@ func swapMixins(line string) string {
 }
 
 func convertStringMethods(line string) string {
+
+	if regexes.LessEStringEscape.MatchString(line) {
+		line = regexes.LessEscape.ReplaceAllLiteralString(line, "")
+		line = regexes.ClosedPerenWithSemiColon.ReplaceAllLiteralString(line, ";")
+	}
+
 	if !regexes.TildeStringEscape.MatchString(line) {
-		return line
+		if !regexes.LessStringFormat.MatchString(line) {
+			return line
+		} else {
+			stringFuncIndxs := regexes.LessStringFormat.FindStringIndex(line)
+			placeholders := regexes.StringPlaceHolder.FindAllString(line, -1)
+			strArgs := regexes.StringReplaceArguments.FindAllString(line, -1)
+			line = line[:stringFuncIndxs[0]] + line[stringFuncIndxs[0]+3:stringFuncIndxs[1]+1]
+			for i := 0; i < len(placeholders); i++ {
+				argMatch, err := regexp.Compile(placeholders[i])
+				if err != nil {
+					fmt.Println("There was an issue during conversion: " + err.Error())
+				}
+				foundIdx := argMatch.FindStringIndex(line)
+				line = line[:foundIdx[0]] + "##{" + strArgs[i] + "}" + line[foundIdx[1]:]
+			}
+			if len(strArgs) > 0 {
+				chop := strings.Split(line, ","+strArgs[0])
+				if len(chop) > 0 {
+					line = chop[0]
+				}
+				line = line[:len(line)-1] + ";"
+			} else {
+				line = line[:len(line)-3] + ";"
+			}
+			return line
+		}
 	} else {
 		line = regexes.Tilde.ReplaceAllLiteralString(line, "")
 		line = regexes.At.ReplaceAllLiteralString(line, "#")
 		line = regexes.RubyStringInterpolation.ReplaceAllLiteralString(line, "#{$")
 		return line
 	}
+}
+
+func convertColorMethods(line string) string {
+	if regexes.LessArgb.MatchString(line) {
+		//foundIdxs := regexes.LessArgb.FindAllStringIndex(line, -1)
+		matches := regexes.LessArgb.FindAllString(line, -1)
+		for i := 0; i < len(matches); i++ {
+			m := regexes.OpenPeren.ReplaceAllLiteralString(matches[i], `\(`)
+			m = regexes.ClosedPeren.ReplaceAllLiteralString(m, `\)`)
+			matchThis, err := regexp.Compile(m)
+			if err != nil {
+				fmt.Println("There was an issue with the conversion: " + err.Error())
+			}
+			matches[i] = regexes.ArgbDeclaration.ReplaceAllLiteralString(matches[i], "")
+			matches[i] = regexes.ClosedPeren.ReplaceAllLiteralString(matches[i], "")
+			line = matchThis.ReplaceAllLiteralString(line, matches[i])
+		}
+	}
+	return line
 }
