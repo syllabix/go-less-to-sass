@@ -11,7 +11,7 @@ import (
 var sassFile converter.DataStream
 
 func main() {
-	filename := flag.String("filename", "", "relative path to the less file you would like to convert to sass")
+	filename := flag.String("filename", "", "relative path to the less file you would like to convert to scss")
 	flag.Parse()
 	fmt.Println(*filename)
 	if *filename != "" {

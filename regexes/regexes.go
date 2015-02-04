@@ -22,7 +22,9 @@ var OffByOneMixinConcat = regexp.MustCompile("-\\.")
 var Hashtag = regexp.MustCompile("(#|{|\\s)")
 
 var ScssMixin = regexp.MustCompile("@mixin")
-var LessMixin = regexp.MustCompile("\\.\\D((\\w|\\d|-|_)*\\((\\w|\\d|@|$|-|_|\\+|;|,)*\\)|(\\w|\\d|-|_)*);")
+var LessMixin = regexp.MustCompile("\\.(\\D)*\\((\\$|\\w|\\d|,|\\s|-|_|\\.|rgba\\((.)*\\))*\\);")
+var ScssInterpolatedValue = regexp.MustCompile("\\${(\\w|-|_)*}")
+var DollarBracket = regexp.MustCompile("\\${")
 
 var Tilde = regexp.MustCompile("~")
 var TildeStringEscape = regexp.MustCompile(":(\\s)?~\\\"(.)*\\\"")

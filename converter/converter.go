@@ -58,6 +58,7 @@ func swapSyntax(line string) string {
 	line = convertColorMethods(line)
 	line = swapVars(line)
 	line = convertStringMethods(line)
+	line = convertInterpolatedStrings(line)
 	line = swapMixins(line)
 	line = handleLessNamespaces(line)
 	return line
@@ -218,7 +219,7 @@ func convertStringMethods(line string) string {
 					fmt.Println("There was an issue during conversion: " + err.Error())
 				}
 				foundIdx := argMatch.FindStringIndex(line)
-				line = line[:foundIdx[0]] + "##{" + strArgs[i] + "}" + line[foundIdx[1]:]
+				line = line[:foundIdx[0]] + "#{" + strArgs[i] + "}" + line[foundIdx[1]:]
 			}
 			if len(strArgs) > 0 {
 				chop := strings.Split(line, ","+strArgs[0])
@@ -255,5 +256,19 @@ func convertColorMethods(line string) string {
 			line = matchThis.ReplaceAllLiteralString(line, matches[i])
 		}
 	}
+	return line
+}
+func convertInterpolatedStrings(line string) string {
+	if !regexes.ScssInterpolatedValue.MatchString(line) {
+		return line
+	}
+	idxs := regexes.ScssInterpolatedValue.FindAllStringSubmatchIndex(line, -1)
+	matches := regexes.ScssInterpolatedValue.FindAllString(line, -1)
+	for i := 0; i < len(matches); i++ {
+		matches[i] = regexes.DollarBracket.ReplaceAllLiteralString(matches[i], "#{$")
+		fmt.Println(matches[i])
+		line = line[:idxs[i][0]] + matches[i] + line[idxs[i][1]:]
+	}
+
 	return line
 }
