@@ -42,6 +42,7 @@ func LessToSass(filename string) chan DataStream {
 }
 
 func convert(file *os.File) string {
+	stringBuffer.Reset()
 	reader := bufio.NewReader(file)
 	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanLines)
@@ -266,7 +267,6 @@ func convertInterpolatedStrings(line string) string {
 	matches := regexes.ScssInterpolatedValue.FindAllString(line, -1)
 	for i := 0; i < len(matches); i++ {
 		matches[i] = regexes.DollarBracket.ReplaceAllLiteralString(matches[i], "#{$")
-		fmt.Println(matches[i])
 		line = line[:idxs[i][0]] + matches[i] + line[idxs[i][1]:]
 	}
 
