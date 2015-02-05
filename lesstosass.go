@@ -50,11 +50,9 @@ func inspect(path string, info os.FileInfo, err error) error {
 }
 
 func writeSassFile(filename string, file string) {
-	go func() {
-		newScssFile := regexes.LessFile.ReplaceAllLiteralString(filename, ".scss")
-		err := ioutil.WriteFile(newScssFile, []byte(file), 0644)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}()
+	newScssFile := regexes.LessFile.ReplaceAllLiteralString(filename, ".scss")
+	err := ioutil.WriteFile(newScssFile, []byte(file), 0644)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

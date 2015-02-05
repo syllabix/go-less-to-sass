@@ -43,6 +43,7 @@ func LessToSass(filename string) chan DataStream {
 
 func convert(file *os.File) string {
 	stringBuffer.Reset()
+	capturedNameSpaces = nil
 	reader := bufio.NewReader(file)
 	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanLines)
@@ -51,8 +52,9 @@ func convert(file *os.File) string {
 	}
 	if len(capturedNameSpaces) > 0 {
 		return removeNameSpaces(stringBuffer.String())
+	} else {
+		return stringBuffer.String()
 	}
-	return stringBuffer.String()
 }
 
 func swapSyntax(line string) string {
@@ -62,6 +64,7 @@ func swapSyntax(line string) string {
 	line = convertInterpolatedStrings(line)
 	line = swapMixins(line)
 	line = handleLessNamespaces(line)
+	line = swapExtends(line)
 	return line
 }
 
@@ -106,7 +109,7 @@ func handleLessNamespaces(line string) string {
 		mixIns := regexes.LessMixin.FindAllStringSubmatchIndex(line, -1)
 		for i, _ := range mixIns {
 			idx := mixIns[i][0]
-			line = line[:idx] + "@include " + line[idx+1:]
+			line = line[:idx] + "@include " + line[idx+2:]
 		}
 	}
 	return line
@@ -207,6 +210,7 @@ func convertStringMethods(line string) string {
 	}
 
 	if !regexes.TildeStringEscape.MatchString(line) {
+		line = regexes.Tilde.ReplaceAllLiteralString(line, "")
 		if !regexes.LessStringFormat.MatchString(line) {
 			return line
 		} else {
@@ -251,6 +255,7 @@ func convertColorMethods(line string) string {
 			matchThis, err := regexp.Compile(m)
 			if err != nil {
 				fmt.Println("There was an issue with the conversion: " + err.Error())
+				panic(err)
 			}
 			matches[i] = regexes.ArgbDeclaration.ReplaceAllLiteralString(matches[i], "")
 			matches[i] = regexes.ClosedPeren.ReplaceAllLiteralString(matches[i], "")
@@ -270,5 +275,21 @@ func convertInterpolatedStrings(line string) string {
 		line = line[:idxs[i][0]] + matches[i] + line[idxs[i][1]:]
 	}
 
+	return line
+}
+
+func swapExtends(line string) string {
+	if !regexes.LessExtend.MatchString(line) {
+		return line
+	}
+	matches := regexes.LessExtend.FindAllString(line, -1)
+	matchIdx := regexes.LessExtend.FindAllStringSubmatchIndex(line, -1)
+	for i := 0; i < len(matches); i++ {
+		matches[i] = regexes.AmperColon.ReplaceAllLiteralString(matches[i], "@")
+		matches[i] = regexes.OpenPeren.ReplaceAllLiteralString(matches[i], " ")
+		matches[i] = regexes.ClosedPeren.ReplaceAllLiteralString(matches[i], "")
+		matches[i] = regexes.LessExtendAll.ReplaceAllLiteralString(matches[i], "")
+		line = line[:matchIdx[i][0]] + matches[i] + line[matchIdx[i][1]:]
+	}
 	return line
 }
