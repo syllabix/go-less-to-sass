@@ -1,9 +1,19 @@
 # go-less-to-sass
-simple go command line tool to quickly convert your less projects to sass
+simple go command line tool to help quickly convert your less projects to sass. as it is basically an automated find and replace tool, certain oddities and more advanced LESS features will be up to you.
 
 # usage 
-the tool in its current form will take a .less file as input, convert the syntax to .scss, and output a .scss file. most of the conversion is what you might expect, but as there are some features of LESS that are not availbale in SCSS (mainly, namespaces). The expected output is outlined below.
+Install Go. Clone the repository into your Go workspace and build the project. If your are unfamiliar with setting up your Go environment, [Golang.org](https://golang.org/doc/code.html) is super straight forward on getting up to speed. The tool can either convert an individual file or an entire project. In both cases, it will convert all *.less files and write a *.scss file with the converted syntax, named identically to the less file it converted. Commands are as follows:
 
+```bash
+go-less-to-sass -filename="path/to/your.less"
+```
+or
+```bash
+cd to/your/less/project
+go-less-to-sass
+```
+
+Below is basic run down of of less-to-sass conversion.
 
 # Variables:
 Input:
@@ -34,20 +44,24 @@ Output:
 	border-radius: $radius;
 }
 ```
+# Mixins
+Input
+```less
+.my-mixin(@width, @height) { //.... }
+```
+Output
+```scss
+@include my-mixin($width, $height) { //.... }
+```
+
 # LESS Namespaces
-As scss does not support namespacing - when finding a less namespace declaration, the name will be used as a prefix delimited by a "-" for all of its respective encapsulated mixins. The declaration itself will be removed in the scss output. A lot simpler than it sounds... 
+As scss does not support namespacing - when finding a less namespace declaration, the tool will attempt to use the namespace as a prefix delimited by a "-" for all of its respective encapsulated mixins. The declaration itself should be removed in the scss output. A lot simpler than it sounds... 
 Input
 ```less
 #font {
   #family {
     .serif() {
       font-family: @serifFontFamily;
-    }
-    .sans-serif() {
-      font-family: @sansFontFamily;
-    }
-    .monospace() {
-      font-family: @monoFontFamily;
     }
   }
   .shorthand(@size: @baseFontSize, @weight: normal, @lineHeight: @baseLineHeight) {
@@ -59,26 +73,12 @@ Input
     #font > #family > .serif;
     #font > .shorthand(@size, @weight, @lineHeight);
   }
-  .sans-serif(@size: @baseFontSize, @weight: normal, @lineHeight: @baseLineHeight) {
-    #font > #family > .sans-serif;
-    #font > .shorthand(@size, @weight, @lineHeight);
-  }
-  .monospace(@size: @baseFontSize, @weight: normal, @lineHeight: @baseLineHeight) {
-    #font > #family > .monospace;
-    #font > .shorthand(@size, @weight, @lineHeight);
-  }
 }
 ```
 Output
 ```scss
 @mixin font-family-serif {
       font-family: $serifFontFamily;
-    }
-@mixin font-family-sans-serif {
-      font-family: $sansFontFamily;
-    }
-@mixin font-family-monospace {
-      font-family: $monoFontFamily;
     }
 
 @mixin font-shorthand($size: $baseFontSize, $weight: normal, $lineHeight: $baseLineHeight) {
@@ -90,19 +90,34 @@ Output
     @include font-family-serif;
     @include font-shorthand($size, $weight, $lineHeight);
   }
-@mixin font-sans-serif($size: $baseFontSize, $weight: normal, $lineHeight: $baseLineHeight) {
-    @include font-family-sans-serif;
-    @include font-shorthand($size, $weight, $lineHeight);
-  }
-@mixin font-monospace($size: $baseFontSize, $weight: normal, $lineHeight: $baseLineHeight) {
-    @include font-family-monospace;
-    @include font-shorthand($size, $weight, $lineHeight);
-  }
 ```
 
-*** This project is under active development. 
+# Interpolated Strings
+Input
+```less
+.grid@{index} { //styles }
+```
+Output
+```scss
+.gird#{$index} { //styles }
+```
 
+# Extend
+The tool will currently only convert extend declarations that are nested. As scss does not support extend as a pseudo class, this will have to be cleaned up manually.
+Input
+```less
+.my-style {
+  &:extend(.their-style);
+}
+```
+Output
+```scss
+.my-style {
+  @ extend .their-style;
+}
+```
 
+*** Notes - this tool is meant to be thought of as an assistant - the real intention behind its development was to get more famliar with Go (amazing language!!) while making something potentially useful. As mentioned before, while being pretty effective, is not perfect. At minimum should save some time converting projects. If you find it useful - fork at will.
 
 
 
