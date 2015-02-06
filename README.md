@@ -116,6 +116,20 @@ Output
   @ extend .their-style;
 }
 ```
+# String methods
+The tool will convert LESS Printf style string methods with scss interpolated valued. It also (as it is included in this example) removes argb color methods as scss does not supporr them.
+
+Input
+```less
+filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=1)",argb(@start-color),argb(@end-color)));
+```
+
+Output
+```scss
+filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#{$start-color}, endColorstr=#{$end-color}, GradientType=1);
+```
+
+
 
 *** Notes - this tool is meant to be thought of as an assistant - the real intention behind its development was to get more famliar with Go (amazing language!!) while making something potentially useful. As mentioned before, while being pretty effective, is not perfect. At minimum should save some time converting projects. If you find it useful - fork at will.
 
