@@ -113,7 +113,7 @@ Input
 Output
 ```scss
 .my-style {
-  @ extend .their-style;
+  @extend .their-style;
 }
 ```
 # String methods
