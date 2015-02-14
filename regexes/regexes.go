@@ -1,10 +1,13 @@
+/*
+Package regexes contains the expressions to assit in replacing most commonly used less syntax features to scss
+*/
+
 package regexes
 
 import (
 	"regexp"
 )
 
-//keeping regular exp declarations out of the conversion logic
 var At = regexp.MustCompile("@")
 var LessNameSpace = regexp.MustCompile("#(\\w|\\d|-|_)+\\s{")
 var OpenCurly = regexp.MustCompile("{")

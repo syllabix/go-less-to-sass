@@ -1,3 +1,7 @@
+/*
+package converter contains the logic to replace common less syntax features to sass
+*/
+
 package converter
 
 import (

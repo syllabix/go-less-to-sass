@@ -1,3 +1,7 @@
+/*
+Simple command line tool to assist in converting less projects to sass
+*/
+
 package main
 
 import (
