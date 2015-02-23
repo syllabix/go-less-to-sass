@@ -69,6 +69,7 @@ func swapSyntax(line string) string {
 	line = swapMixins(line)
 	line = handleLessNamespaces(line)
 	line = swapExtends(line)
+	line = regexes.LessToScssImport.ReplaceAllLiteralString(line, ".scss")
 	return line
 }
 

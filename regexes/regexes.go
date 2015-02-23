@@ -27,7 +27,7 @@ var Hashtag = regexp.MustCompile("(#|{|\\s)")
 
 //mixins
 var ScssMixin = regexp.MustCompile("@mixin")
-var LessMixin = regexp.MustCompile("(\\W)\\.(|[a-zA-Z]|-|_)*\\([\\w\\d\\s%,\\*\\+-_@\"~\\$\\.\\(\\)]*\\)(;|})")
+var LessMixin = regexp.MustCompile("[\\W]\\.(|[a-zA-Z0-9]|-|_)*\\([\\w\\d\\s%,\\*\\+-_@\"~\\$\\.\\(\\)]*\\)(;|})")
 var ScssInterpolatedValue = regexp.MustCompile("\\${(\\w|-|_)*}")
 var DollarBracket = regexp.MustCompile("\\${")
 
@@ -53,3 +53,6 @@ var LessFile = regexp.MustCompile("\\.less")
 var LessExtend = regexp.MustCompile("&:extend\\((.)*\\)")
 var AmperColon = regexp.MustCompile("&:")
 var LessExtendAll = regexp.MustCompile("all")
+
+//import statements
+var LessToScssImport = regexp.MustCompile(".less")
