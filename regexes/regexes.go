@@ -27,7 +27,8 @@ var Hashtag = regexp.MustCompile("(#|{|\\s)")
 
 //mixins
 var ScssMixin = regexp.MustCompile("@mixin")
-var LessMixin = regexp.MustCompile("[\\W]\\.(|[a-zA-Z0-9]|-|_)*\\([\\w\\d\\s%,\\*\\+-_@\"~\\$\\.\\(\\)]*\\)(;|})")
+var LessMixin = regexp.MustCompile("\\.(|[a-zA-Z0-9]|-|_)*\\([\\w\\d\\s%,\\*\\+-_@\"~\\$\\.\\(\\)]*\\)(;|})")
+
 var ScssInterpolatedValue = regexp.MustCompile("\\${(\\w|-|_)*}")
 var DollarBracket = regexp.MustCompile("\\${")
 
