@@ -67,3 +67,20 @@ func TestConvertInterpolatedStrings(t *testing.T) {
 		}
 	}
 }
+
+func TestHandleLessNamespaces(t *testing.T) {
+	cases := []struct {
+		in, out string
+	}{
+		{".transition(all 0.2s ease-in-out);", "@include transition(all 0.2s ease-in-out);"},
+		{"	.transition(all 0.2s ease-in-out);", "	@include transition(all 0.2s ease-in-out);"},
+		{"  .transition(all 0.2s ease-in-out);", "  @include transition(all 0.2s ease-in-out);"},
+	}
+
+	for _, c := range cases {
+		got := handleLessNamespaces(c.in)
+		if got != c.out {
+			t.Errorf("handleLessNamespaces should have converted '%s' to '%s', but instead output '%s'", c.in, c.out, got)
+		}
+	}
+}
