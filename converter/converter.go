@@ -114,7 +114,7 @@ func handleLessNamespaces(line string) string {
 		mixIns := regexes.LessMixin.FindAllStringSubmatchIndex(line, -1)
 		for i, _ := range mixIns {
 			idx := mixIns[i][0]
-			line = line[:idx] + "@include " + line[idx+2:]
+			line = line[:idx] + "@include " + line[idx+1:]
 		}
 	}
 	return line
