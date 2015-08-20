@@ -68,6 +68,8 @@ func TestLessMixin(t *testing.T) {
 		{".myClass { .my-Mixin(@funvar, @color)}", true},
 		{"#cool { .box-shadow(1px 2px 4px rgba(0, 0, 0, 0.4); }", true},
 		{".my-mixin(@color) {", false},
+		{".no-parentheses;", true},
+		{"width: .05em;", false},
 	}
 	for _, c := range cases {
 		matched := LessMixin.MatchString(c.in)
