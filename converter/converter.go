@@ -8,7 +8,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/syllabix/go-less-to-sass/regexes"
+	"go-less-to-sass/regexes"
 	"os"
 	"regexp"
 	"strings"

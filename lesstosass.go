@@ -7,8 +7,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/syllabix/go-less-to-sass/converter"
-	"github.com/syllabix/go-less-to-sass/regexes"
+	"go-less-to-sass/converter"
+	"go-less-to-sass/regexes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
