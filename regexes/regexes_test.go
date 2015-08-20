@@ -49,6 +49,7 @@ func TestMixInDeclation(t *testing.T) {
 		{".mixit(@width, @color);", false},
 		{".mixit(@width, @color) {", true},
 		{".nospace-beforebracket(@width, @color){", true},
+		{".space-before-parenthesis (){", true},
 	}
 
 	for _, c := range cases {

@@ -20,7 +20,7 @@ var Space = regexp.MustCompile("\\s")
 var Dot = regexp.MustCompile("\\.")
 
 var CssReservedWords = regexp.MustCompile("\\$(media|import|keyframes|-webkit|-moz|-o|font-face|page|supports|document|charset)")
-var MixInDeclation = regexp.MustCompile("\\.(\\w|\\d|-|_)*\\([#\\w\\d-_,;@\\$:\\s]*\\)\\s?{")
+var MixInDeclation = regexp.MustCompile("\\.(\\w|\\d|-|_)*\\s?\\([#\\w\\d-_,;@\\$:\\s]*\\)\\s?{")
 var EmptyParens = regexp.MustCompile("\\(\\)")
 var OffByOneMixinConcat = regexp.MustCompile("-\\.")
 var Hashtag = regexp.MustCompile("(#|{|\\s)")
